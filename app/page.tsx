@@ -32,6 +32,22 @@ export default function Search({
   );
 }
 
+// ************* Meta Data *************
+export const generateMetadata = async ({
+  searchParams,
+}: {
+  searchParams: ISearchParams;
+}) => {
+  const { query } = await searchParams;
+  return {
+    title: query
+      ? `${query?.slice(0, 30)}${
+          query?.length > 30 ? "..." : ""
+        } - 𝒻𝒶𝓈𝓉 Dictionary`
+      : "𝒻𝒶𝓈𝓉 Dictionary",
+  };
+};
+
 // ************* Shared *************
 const ELIPSIS = <p className="text-gray-600">...</p>;
 
