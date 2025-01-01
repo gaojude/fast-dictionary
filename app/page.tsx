@@ -141,7 +141,15 @@ const RenderSearch = async ({ query }: { query: string }) => {
           The further our cause advances
 
           我们的事业越向前推进
-          course(事业): A principle, goal, or movement that people support or are working toward.
+          course (事业): A principle, goal, or movement that people support or are working toward.
+
+          Example 4:
+          Input: *not least* in the European Union
+          Output:
+          not least in the European Union
+
+          在欧盟中，尤其重要。
+          not least (尤其重要): At least as important as anything else.
           `,
         },
         {
