@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { openai } from "@ai-sdk/openai";
 import { streamText } from "ai";
 import { Pronounce } from "./Pronounce";
+import { cacheLife } from "next/dist/server/use-cache/cache-life";
 
 export default function Search({
   searchParams,
@@ -87,6 +88,9 @@ const SearchContent = async ({
 };
 
 const RenderSearch = async ({ query }: { query: string }) => {
+  "use cache";
+  cacheLife("max");
+
   const reader = await (
     await streamText({
       model: openai("gpt-4o-mini"),
