@@ -18,6 +18,9 @@ export default function Search({
         </h1>
         <SearchBar />
         <Suspense>
+          <SearchHeader searchParams={searchParams} />
+        </Suspense>
+        <Suspense fallback={<SafariInitialBufferFix />}>
           <SearchContent searchParams={searchParams} />
         </Suspense>
       </div>
@@ -27,6 +30,11 @@ export default function Search({
 
 // ************* Shared *************
 const ELIPSIS = <p className="text-gray-600">...</p>;
+
+// Safari buffers the first 1KB of content, so we need to add invisible characters to force it to flush the initial buffering
+const SafariInitialBufferFix = () => {
+  return <>{"\u200b".repeat(1024)}</>;
+};
 
 // ************* Search Bar *************
 const SearchBar = () => {
@@ -45,6 +53,22 @@ const SearchBar = () => {
   );
 };
 
+const SearchHeader = async ({
+  searchParams,
+}: {
+  searchParams: Promise<{ query: string }>;
+}) => {
+  const { query } = await searchParams;
+  return (
+    <div className="flex items-center justify-between mb-4">
+      <h2 className="text-2xl font-serif text-gray-800 line-clamp-1">
+        {query}
+      </h2>
+      <Pronounce input={query} />
+    </div>
+  );
+};
+
 // ************* Search Content *************
 const SearchContent = async ({
   searchParams,
@@ -57,12 +81,6 @@ const SearchContent = async ({
   }
   return (
     <div className="rounded-lg border border-gray-200 p-4 sm:p-6 bg-white shadow-md">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-serif text-gray-800 line-clamp-1">
-          {query}
-        </h2>
-        <Pronounce word={query} />
-      </div>
       <RenderSearch query={query} />
     </div>
   );
@@ -93,7 +111,14 @@ const RenderSearch = async ({ query }: { query: string }) => {
   ).getReader();
 
   return (
-    <Suspense fallback={ELIPSIS}>
+    <Suspense
+      fallback={
+        <>
+          <SafariInitialBufferFix />
+          {ELIPSIS}
+        </>
+      }
+    >
       <RenderStream reader={reader} />
     </Suspense>
   );

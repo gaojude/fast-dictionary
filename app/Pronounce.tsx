@@ -1,29 +1,23 @@
 "use client";
 
-import { useRef } from "react";
+import { useCallback } from "react";
 
-interface PronounceProps {
-  word: string;
-}
-
-export function Pronounce({ word }: PronounceProps) {
-  const audioRef = useRef<HTMLAudioElement>(null);
-
-  const handlePronounce = async () => {
+export function Pronounce({ input }: { input: string }) {
+  const handlePronounce = useCallback(() => {
     try {
-      const speech = new SpeechSynthesisUtterance(word);
+      const speech = new SpeechSynthesisUtterance(input);
       speech.lang = "en-US";
       window.speechSynthesis.speak(speech);
     } catch (error) {
       console.error("Error pronouncing word:", error);
     }
-  };
+  }, [input]);
 
   return (
     <button
       onClick={handlePronounce}
       className="inline-flex items-center px-3 py-1 text-sm text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
-      aria-label={`Pronounce ${word}`}
+      aria-label={`Pronounce ${input}`}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

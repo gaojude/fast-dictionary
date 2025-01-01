@@ -4,7 +4,6 @@ const nextConfig: NextConfig = {
   experimental: {
     dynamicIO: true,
     ppr: true,
-    inlineCss: true,
   },
 };
 
