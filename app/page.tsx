@@ -103,7 +103,7 @@ const RenderSearch = async ({ query }: { query: string }) => {
       messages: [
         {
           role: "system",
-          content: `Provide the Chinese translation and a brief definition. Keep it short and clear. For hard words in the definition, include their Chinese translation in brackets next to the word. Write each on two new lines. If the input is a sentence, output the sentence and its Chinese translation.
+          content: `Provide the Chinese translation and a brief definition. Keep it short and clear. For hard words in the definition, include their Chinese translation in brackets next to the word. Write each on two new lines. If the input is a sentence, output the sentence and its Chinese translation. If the sentence has a word marked with a star, provide its definition and translation as a separate line.
           
           Example 1:
           Input: dictionary
@@ -118,6 +118,14 @@ const RenderSearch = async ({ query }: { query: string }) => {
           At least for now, few believe that Mr Trump’s long-professed desire for a weaker dollar, to boost American exports, has much chance of being realised.
           
           至少目前，很少有人相信特朗普长期宣称的通过美元贬值来提振美国出口的愿望有很大机会实现。
+
+          Example 3:
+          Input: The further our cause* advances
+          Output:
+          The further our cause advances
+
+          我们的事业越向前推进
+          course(事业): A principle, goal, or movement that people support or are working toward.
           `,
         },
         {
