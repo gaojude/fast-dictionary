@@ -18,10 +18,10 @@ export default function Search({
           𝒻𝒶𝓈𝓉 Dictionary
         </h1>
         <SearchBar />
-        <Suspense>
+        <Suspense fallback={<SafariInitialBufferFix />}>
           <SearchHeader searchParams={searchParams} />
         </Suspense>
-        <Suspense fallback={<SafariInitialBufferFix />}>
+        <Suspense>
           <SearchContent searchParams={searchParams} />
         </Suspense>
       </div>
