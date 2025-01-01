@@ -3,6 +3,7 @@ import { openai } from "@ai-sdk/openai";
 import { streamText } from "ai";
 import { Pronounce } from "./Pronounce";
 import { cacheLife } from "next/dist/server/use-cache/cache-life";
+import Link from "next/link";
 
 type ISearchParams = Promise<{
   query: string | undefined;
@@ -17,7 +18,7 @@ export default function Search({
     <div className="flex min-h-screen flex-col items-center p-4 sm:p-24 bg-gradient-to-b from-amber-50 to-white">
       <div className="w-full max-w-2xl px-2 sm:px-0">
         <h1 className="text-3xl sm:text-4xl font-serif text-gray-800 mb-6 sm:mb-8 text-center">
-          𝒻𝒶𝓈𝓉 Dictionary
+          <Link href="/">𝒻𝒶𝓈𝓉 Dictionary</Link>
         </h1>
         <SearchBar />
         <Suspense>
