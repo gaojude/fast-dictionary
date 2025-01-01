@@ -4,12 +4,14 @@ import { streamText } from "ai";
 import { Pronounce } from "./Pronounce";
 import { cacheLife } from "next/dist/server/use-cache/cache-life";
 
+type ISearchParams = Promise<{
+  query: string | undefined;
+}>;
+
 export default function Search({
   searchParams,
 }: {
-  searchParams: Promise<{
-    query: string;
-  }>;
+  searchParams: ISearchParams;
 }) {
   return (
     <div className="flex min-h-screen flex-col items-center p-4 sm:p-24 bg-gradient-to-b from-amber-50 to-white">
@@ -18,7 +20,7 @@ export default function Search({
           𝒻𝒶𝓈𝓉 Dictionary
         </h1>
         <SearchBar />
-        <Suspense fallback={<SafariInitialBufferFix />}>
+        <Suspense>
           <SearchHeader searchParams={searchParams} />
         </Suspense>
         <Suspense>
@@ -57,9 +59,12 @@ const SearchBar = () => {
 const SearchHeader = async ({
   searchParams,
 }: {
-  searchParams: Promise<{ query: string }>;
+  searchParams: ISearchParams;
 }) => {
   const { query } = await searchParams;
+  if (!query) {
+    return null;
+  }
   return (
     <div className="flex items-center justify-between mb-4">
       <h2 className="text-2xl font-serif text-gray-800 line-clamp-1">
@@ -74,7 +79,7 @@ const SearchHeader = async ({
 const SearchContent = async ({
   searchParams,
 }: {
-  searchParams: Promise<{ query: string }>;
+  searchParams: ISearchParams;
 }) => {
   const { query } = await searchParams;
   if (!query) {
