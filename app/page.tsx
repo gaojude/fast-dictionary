@@ -1,10 +1,14 @@
 import { Suspense } from "react";
 import { openai } from "@ai-sdk/openai";
-import { streamText } from "ai";
+import {
+  streamText,
+  experimental_generateImage as generateImage,
+  generateText,
+} from "ai";
 import { Pronounce } from "./Pronounce";
 import { cacheLife } from "next/dist/server/use-cache/cache-life";
 import Link from "next/link";
-
+import { ErrorBoundary } from "./error-boundary";
 type ISearchParams = Promise<{
   query: string | undefined;
 }>;
@@ -24,9 +28,14 @@ export default function Search({
         <Suspense>
           <SearchHeader searchParams={searchParams} />
         </Suspense>
-        <Suspense>
-          <SearchContent searchParams={searchParams} />
-        </Suspense>
+
+        <ErrorBoundary
+          fallback={<div>Something went wrong. Please try again.</div>}
+        >
+          <Suspense>
+            <SearchContent searchParams={searchParams} />
+          </Suspense>
+        </ErrorBoundary>
       </div>
     </div>
   );
@@ -105,6 +114,7 @@ const SearchContent = async ({
   return (
     <div className="rounded-lg border border-gray-200 p-4 sm:p-6 bg-white shadow-md">
       <RenderSearch query={query} />
+      <RenderImage query={query} />
     </div>
   );
 };
@@ -194,5 +204,60 @@ const RenderStream = async ({
         <RenderStream reader={reader} />
       </Suspense>
     </>
+  );
+};
+
+const GenerateImage = async ({ query }: { query: string }) => {
+  "use cache";
+  cacheLife("max");
+  const { text: imagePrompt } = await generateText({
+    model: openai("gpt-4o-mini"),
+    messages: [
+      {
+        role: "system",
+        content: `Write a concise, optimized DALL-E v2 prompt for: ${query}`,
+      },
+    ],
+  });
+
+  try {
+    const { image } = await generateImage({
+      model: openai.image("dall-e-2"),
+      prompt: imagePrompt,
+      size: "512x512",
+      n: 1,
+    });
+
+    return (
+      <img
+        src={`data:image/png;base64,${image.base64}`}
+        alt={imagePrompt}
+        className="mt-4 w-full h-[100%] aspect-square"
+      />
+    );
+  } catch (error) {
+    return (
+      <div className="w-full h-[100%] aspect-square bg-gray-100 flex items-center justify-center mt-4">
+        <div className="text-red-500">
+          Failed to generate image. Please try again.
+          <br />
+          Error: {JSON.stringify({ error, imagePrompt })}
+        </div>
+      </div>
+    );
+  }
+};
+
+const RenderImage = async ({ query }: { query: string }) => {
+  return (
+    <Suspense
+      fallback={
+        <div className="w-full h-[100%] aspect-square bg-gray-100 flex items-center justify-center mt-4">
+          <div className="animate-spin h-8 w-8 border-4 border-gray-300 rounded-full border-t-gray-600" />
+        </div>
+      }
+    >
+      <GenerateImage query={query} />
+    </Suspense>
   );
 };
