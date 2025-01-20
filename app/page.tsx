@@ -3,8 +3,11 @@ import { openai } from "@ai-sdk/openai";
 import {
   streamText,
   experimental_generateImage as generateImage,
-  generateText,
+  generateObject,
 } from "ai";
+
+import { z } from "zod";
+
 import { Pronounce } from "./Pronounce";
 import { cacheLife } from "next/dist/server/use-cache/cache-life";
 import Link from "next/link";
@@ -207,48 +210,27 @@ const RenderStream = async ({
   );
 };
 
-const GenerateImage = async ({ query }: { query: string }) => {
+const MaybeGenerateImage = async ({ query }: { query: string }) => {
   "use cache";
   cacheLife("max");
-  const { text: imagePrompt } = await generateText({
-    model: openai("gpt-4o-mini"),
-    messages: [
-      {
-        role: "system",
-        content: `Write a concise, optimized DALL-E v2 prompt for: ${query}`,
-      },
-    ],
+
+  const { object } = await generateObject({
+    model: openai("gpt-4-turbo"),
+    schema: z.object({
+      shouldGenerate: z.boolean(),
+      optimizedPrompt: z.string().optional(),
+    }),
+    prompt: `Determine if we should generate an image for the following query: ${query}. If so, write a concise, optimized DALL-E v2 prompt for it.`,
   });
 
-  try {
-    const { image } = await generateImage({
-      model: openai.image("dall-e-2"),
-      prompt: imagePrompt,
-      size: "512x512",
-      n: 1,
-    });
-
+  if (!object.shouldGenerate || !object.optimizedPrompt) {
     return (
-      <img
-        src={`data:image/png;base64,${image.base64}`}
-        alt={imagePrompt}
-        className="mt-4 w-full h-[100%] aspect-square"
-      />
-    );
-  } catch (error) {
-    return (
-      <div className="w-full h-[100%] aspect-square bg-gray-100 flex items-center justify-center mt-4">
-        <div className="text-red-500">
-          Failed to generate image. Please try again.
-          <br />
-          Error: {JSON.stringify({ error, imagePrompt })}
-        </div>
-      </div>
+      <p className="mt-4 inline-block bg-gray-50 text-gray-500">
+        No image generated. This query is not suitable for an image.
+      </p>
     );
   }
-};
 
-const RenderImage = async ({ query }: { query: string }) => {
   return (
     <Suspense
       fallback={
@@ -257,7 +239,46 @@ const RenderImage = async ({ query }: { query: string }) => {
         </div>
       }
     >
-      <GenerateImage query={query} />
+      <GenerateImage optimizedPrompt={object.optimizedPrompt} />
+    </Suspense>
+  );
+};
+
+const GenerateImage = async ({
+  optimizedPrompt,
+}: {
+  optimizedPrompt: string;
+}) => {
+  try {
+    const { image } = await generateImage({
+      model: openai.image("dall-e-2"),
+      prompt: optimizedPrompt,
+      size: "512x512",
+      n: 1,
+    });
+
+    return (
+      <img
+        src={`data:image/png;base64,${image.base64}`}
+        alt={optimizedPrompt}
+        className="mt-4 w-full h-[100%] aspect-square"
+      />
+    );
+  } catch (error) {
+    return (
+      <div className="w-full h-[100%] aspect-square bg-gray-100 flex items-center justify-center mt-4">
+        <div className="text-red-500">
+          Failed to generate image. Please try again.
+        </div>
+      </div>
+    );
+  }
+};
+
+const RenderImage = async ({ query }: { query: string }) => {
+  return (
+    <Suspense>
+      <MaybeGenerateImage query={query} />
     </Suspense>
   );
 };
