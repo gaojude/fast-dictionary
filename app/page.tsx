@@ -114,6 +114,7 @@ const SearchContent = async ({
   if (!query) {
     return null;
   }
+  console.log("query", query);
   return (
     <div className="rounded-lg border border-gray-200 p-4 sm:p-6 bg-white shadow-md">
       <RenderSearch query={query} />
