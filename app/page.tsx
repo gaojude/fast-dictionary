@@ -122,13 +122,7 @@ const SearchContent = async ({
   );
 };
 
-const RenderSearch = async ({
-  query,
-  children,
-}: {
-  query: string;
-  children: React.ReactNode;
-}) => {
+const RenderSearch = async ({ query }: { query: string }) => {
   "use cache";
   cacheLife("max");
 
@@ -189,7 +183,6 @@ const RenderSearch = async ({
       }
     >
       <RenderStream reader={reader} />
-      {children}
     </Suspense>
   );
 };
