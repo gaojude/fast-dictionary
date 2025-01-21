@@ -122,7 +122,13 @@ const SearchContent = async ({
   );
 };
 
-const RenderSearch = async ({ query }: { query: string }) => {
+const RenderSearch = async ({
+  query,
+  children,
+}: {
+  query: string;
+  children: React.ReactNode;
+}) => {
   "use cache";
   cacheLife("max");
 
@@ -183,6 +189,7 @@ const RenderSearch = async ({ query }: { query: string }) => {
       }
     >
       <RenderStream reader={reader} />
+      {children}
     </Suspense>
   );
 };
@@ -215,27 +222,32 @@ const MaybeGenerateImage = async ({ query }: { query: string }) => {
   cacheLife("max");
 
   const { object } = await generateObject({
-    model: openai("gpt-4-turbo"),
+    model: openai("gpt-4o"),
     schema: z.object({
       shouldGenerate: z.boolean(),
       optimizedPrompt: z.string().optional(),
     }),
-    prompt: `Determine if we should generate an image for the following query: ${query}. If so, write a concise, optimized DALL-E v2 prompt for it.`,
+    prompt: `Determine if we should generate an image for the following query: ${query}. If so, create a prompt with concrete instructions. You're responsible for converting abstract words into concrete designs.`,
   });
 
   if (!object.shouldGenerate || !object.optimizedPrompt) {
     return (
-      <p className="mt-4 inline-block bg-gray-50 text-gray-500">
-        No image generated. This query is not suitable for an image.
-      </p>
+      <div>
+        <p className="mt-4 inline-block bg-gray-50 text-gray-500">
+          No image generated. This query is not suitable for an image.
+        </p>
+      </div>
     );
   }
 
   return (
     <Suspense
       fallback={
-        <div className="w-full h-[100%] aspect-square bg-gray-100 flex items-center justify-center mt-4">
+        <div className="w-full h-[100%] aspect-square bg-gray-100 flex flex-col gap-4 items-center justify-center mt-4">
           <div className="animate-spin h-8 w-8 border-4 border-gray-300 rounded-full border-t-gray-600" />
+          <p className="text-gray-500 text-sm text-center px-4">
+            {object.optimizedPrompt}
+          </p>
         </div>
       }
     >
@@ -253,8 +265,8 @@ const GenerateImage = async ({
     const { image } = await generateImage({
       model: openai.image("dall-e-2"),
       prompt: optimizedPrompt,
-      size: "512x512",
-      n: 1,
+      size: "256x256",
+      abortSignal: AbortSignal.timeout(15000),
     });
 
     return (
